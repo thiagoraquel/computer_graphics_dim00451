@@ -22,7 +22,8 @@ This method corresponds to the "main loop" of the rendering process.
 ```
 cmake -S . -B build
 cmake --build build
-./build/rt3 scenes/scene01.xml
+./build/rt3 scenes/scene01.xml (for linux)
+.\build\rt3 scenes\scene01.xml
 ```
 
 # TODO

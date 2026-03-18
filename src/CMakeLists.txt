@@ -28,6 +28,8 @@ target_include_directories( ${APP_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/lib_lodepng)
 target_include_directories( ${APP_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/lib_cybase)
 # Core folder
 target_include_directories( ${APP_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/core)
+
+target_include_directories( ${APP_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/../lib_glm)
 # Camera folder
 # target_include_directories( ${APP_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/camera)
 # Integrator folder
@@ -39,8 +41,6 @@ target_include_directories( ${APP_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/core)
 # ------------------------------------------------------------
 
 # =============[ Libs ]=================
-find_package(glm CONFIG REQUIRED)
-target_link_libraries(${APP_NAME} PRIVATE glm::glm)
 target_link_libraries( ${APP_NAME} PRIVATE ${LIB_TINYXML2})
 target_link_libraries( ${APP_NAME} PRIVATE ${LIB_LODEPNG})
 # ------------------------------------------------------------

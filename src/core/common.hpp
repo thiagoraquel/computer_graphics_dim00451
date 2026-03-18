@@ -98,9 +98,10 @@ struct RunningOptions {
 };
 
 /// Lambda expression that returns a lowercase version of the input string.
-auto str_lowercase = [](std::string str) -> std::string {
-  std::transform(str.begin(), str.end(), str.begin(), ::tolower);
-  return str;
+// Add the keyword 'inline' before auto
+inline auto str_lowercase = [](std::string str) -> std::string {
+    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+    return str;
 };
 
 }  // namespace gc

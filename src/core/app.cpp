@@ -111,10 +111,15 @@ void App::world_end(const ParamSet& ps) {
   // ===============================================================
   // For now, we create the film here but in the future it will be
   // instantiated somewhere else.
+  // 1. Create the film
   Film* film = make_film(m_render_options->actors["film"]);
   if (film == nullptr) {
     ERROR("App::setup_camera(): Unable to create film.");
+    return; // Exit if film creation failed
   }
+
+  // 2. VITAL STEP: Give the film to the engine's RenderOptions!
+  m_render_options->film.reset(film);
 
   // The scene has already been parsed and properly set up. It's time to render the scene.
   // [1] Create the integrator.
@@ -174,25 +179,20 @@ void App::background(const ParamSet& ps) {
 }
 
 void App::render() {
-  // Perform objects initialization here.
-  // -------------------------------------------------------------
-  // The Film object holds the memory for the image.
-  auto film_resolution
-    = m_render_options->film->get_resolution();  // Retrieve the image dimensions in pixels.
+  auto film_resolution = m_render_options->film->get_resolution();
   auto w = film_resolution.x;
   auto h = film_resolution.y;
-  // -------------------------------------------------------------
-  // Traverse all pixels to shoot rays from.
+
   for (int j = 0; j < h; j++) {
     for (int i = 0; i < w; i++) {
-      // Not shooting rays just yet; so let us sample the background.
-      auto color = m_render_options->background->sampleUV(
-        float(i) / float(w), float(j) / float(h));  // get background color.
-      m_render_options->film->add_sample(
-        Point2{ i, j }, color);  // set image buffer at position (i,j), accordingly.
+      // Use w-1 and h-1 to get the full [0.0, 1.0] range
+      float u = float(i) / float(w - 1);
+      float v = float(j) / float(h - 1);
+
+      auto color = m_render_options->background->sampleUV(u, v);
+      m_render_options->film->add_sample(Point2i{ i, j }, color);
     }
   }
-  // send image color buffer to the output file.
   m_render_options->film->write_image();
 }
 
