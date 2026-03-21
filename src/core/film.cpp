@@ -4,6 +4,10 @@
 #include <iomanip>
 #include <sstream>
 
+#include <fstream>   // <--- This fixes the "incomplete type" error
+#include <cmath>     // For std::pow in gamma correction
+
+#include "lodepng.h"
 #include "../msg_system/error.hpp"
 #include "app.hpp"
 #include "common.hpp"
@@ -16,31 +20,66 @@
 namespace gc {
 
 //=== Film Method Definitions
-Film::Film(const Point2i& resolution,
-           const std::string& filename,
-           image_type_e image_type,
-           bool gamma_corrected)
+Film::Film(const Point2i& resolution, const std::string& filename, image_type_e image_type, bool gamma_corrected)
     : m_full_resolution{ resolution }, m_filename{ filename },
       m_activate_gamma_correction{ gamma_corrected }, m_image_type{ image_type } {
-  // TODO:
+    
+    
+    // Allocate space for all pixels (width * height)
+    m_color_buffer.resize(resolution.x * resolution.y);
+    // Populate the image_io functions
+    m_image_io_dict = {
+          {image_type_e::PNG, save_png},
+          {image_type_e::PPM3, save_ppm3},
+          {image_type_e::PPM6, save_ppm6}
+        };
 }
-
 Film::~Film() = default;
 
 /// Add the Spectrum color to image. Pixel coords comes as (x,y).
 void Film::add_sample(const Point2i& pixel_coord, const Spectrum& pixel_color) const {
-  // TODO:
+    int index = pixel_coord.y * m_full_resolution.x + pixel_coord.x;
+
+    // Safety check: if the index is too high, something is wrong with our loops
+    if (index < m_color_buffer.size()) {
+        const_cast<Film*>(this)->m_color_buffer[index] = pixel_color;
+    }
 }
 
 /// Convert Spectrum image information to RGB, compute final pixel values, write image.
 void Film::write_image() const {
-  // TODO:
+    std::vector<unsigned char> byte_buffer;
+    byte_buffer.reserve(m_full_resolution.x * m_full_resolution.y * 3);
+
+    for (const auto& spec : m_color_buffer) {
+        Spectrum color = spec;
+
+        // TODO : Understand what gamma correction even is
+        if (m_activate_gamma_correction) {
+          // TODO
+        }
+
+        // Using std::clamp to ensure values in [0,255]
+        byte_buffer.push_back(static_cast<unsigned char>(std::clamp(color.r * 255.0f, 0.0f, 255.0f)));
+        byte_buffer.push_back(static_cast<unsigned char>(std::clamp(color.g * 255.0f, 0.0f, 255.0f)));
+        byte_buffer.push_back(static_cast<unsigned char>(std::clamp(color.b * 255.0f, 0.0f, 255.0f)));
+    }
+    // TODO : Better error handling for unidentified output tag
+    if (m_image_io_dict.count(m_image_type) == 0) {
+      std::cerr << ">>> Image type not acceptable <<<";
+      return;
+    }
+    auto image_io = m_image_io_dict.at(m_image_type);
+    bool image_writing_success = image_io(byte_buffer, m_full_resolution.x, m_full_resolution.y, 3, m_filename);
+    if (image_writing_success) {
+      std::cout << ">>> Image saved successfully to: " << m_filename << "\n";
+    }
 }
 
 /// Chooses the filename based on the CLI and scene file info.
 std::string handles_filename(const ParamSet& ps) {
-  // TODO:
-  return "unknown.png";  // STUB, replace it!
+  // Retrieve the filename from the XML, default to "render.png" if missing
+  return ps.retrieve<std::string>("filename", "render.png");
 }
 
 // /// Process ParamSet, extracts, validates a valid crop window.
@@ -90,7 +129,7 @@ Film* create_film(const ParamSet& ps) {
   std::cout << "================================================\n";
   std::cout << ">>> create_film() - film parameters are:\n";
   std::cout << "    - filename: " << std::quoted(filename) << "\n";
-  std::cout << "    - crop window: " << crop_window << "\n";
+  // std::cout << "    - crop window: " << crop_window << "\n";
   std::cout << "    - w_res: " << dimensions.x << "\n";
   std::cout << "    - h_res: " << dimensions.y << "\n";
   std::cout << "    - image type: " << ps.retrieve<std::string>("img_type", "png") << "\n";

@@ -40,12 +40,13 @@ Spectrum BackgroundMultiColor::lerp(const Spectrum& S, const Spectrum& E, float 
 Spectrum BackgroundSingleColor::sampleUV(real_type u, real_type v) const { return m_single_color; }
 
 Spectrum BackgroundMultiColor::sampleUV(real_type u, real_type v) const {
-  // Ok, now we got the (u,v) coordinate from the mapping process.
-  // interpolate horizontally first.
-  Spectrum bottom = BackgroundMultiColor::lerp(m_corners[bl], m_corners[br], u);
-  Spectrum top = BackgroundMultiColor::lerp(m_corners[tl], m_corners[tr], u);
-  //  now, interpolate vertically, based on the (interpolated) colors from previous step.
-  return BackgroundMultiColor::lerp(top, bottom, v);
+    // Interpolate horizontally along bottom and top
+    // Note: ensure indices bl, br, tl, tr match the enum in the .hpp
+    Spectrum bottom = lerp(m_corners[bl], m_corners[br], u);
+    Spectrum top    = lerp(m_corners[tl], m_corners[tr], u);
+    
+    // Interpolate vertically from bottom (v=0) to top (v=1)
+    return lerp(bottom, top, v);
 }
 
 Background* create_color_background(std::string_view type, const ParamSet& ps) {

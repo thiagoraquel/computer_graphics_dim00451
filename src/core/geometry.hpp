@@ -260,6 +260,19 @@ public:
     return *this;
   }
 
+  // ADD THESE OPERATORS INSIDE THE CLASS:
+    Vector3<T> operator+(const Vector3<T>& v) const { return {x + v.x, y + v.y, z + v.z}; }
+    Vector3<T> operator-(const Vector3<T>& v) const { return {x - v.x, y - v.y, z - v.z}; }
+    Vector3<T> operator*(T s) const { return {x * s, y * s, z * s}; }
+    Vector3<T> operator/(T s) const { return {x / s, y / s, z / s}; }
+    
+    // This allows scalar * vector (e.g., 2.0f * vec)
+    friend Vector3<T> operator*(T s, const Vector3<T>& v) { return v * s; }
+
+    // Add a simple length function (needed for later projects)
+    T length_squared() const { return x*x + y*y + z*z; }
+    T length() const { return std::sqrt(length_squared()); }
+
   bool operator==(const Vector3<T>& v) const { return x == v.x and y == v.y and z == v.z; }
   bool operator!=(const Vector3<T>& v) const { return x != v.x or y != v.y or z != v.z; }
 };
@@ -284,7 +297,7 @@ public:
 
   [[nodiscard]] bool has_nans() const { return std::isnan(x) || std::isnan(y) || std::isnan(z); }
 
-  Normal3<T>(const Normal3<T>& n) {
+  Normal3(const Normal3<T>& n) {
     assert(not n.has_nans());
     x = n.x;
     y = n.y;
@@ -299,7 +312,7 @@ public:
     return *this;
   }
 
-  explicit Normal3<T>(const Vector3<T>& v) : x{ v.x }, y{ v.y }, z{ v.z } {
+  explicit Normal3(const Vector3<T>& v) : x{ v.x }, y{ v.y }, z{ v.z } {
     assert(not v.has_nans());
   }
 

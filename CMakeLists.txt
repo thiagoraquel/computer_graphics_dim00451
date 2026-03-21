@@ -13,6 +13,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
 # Use this to define the symbol DEBUG
 # add_compile_options("$<$<CONFIG:DEBUG>:-DDEBUG>")
 
+# Add the GLM folder to the global include path
+include_directories(${CMAKE_SOURCE_DIR}/lib_glm)
+
 #=== ADDING SUBDIRECTORIES ===#
 set( LIB_TINYXML2 "tinyxml2" )
 add_subdirectory(lib_tinyxml2) # This will ask this lib to be build
