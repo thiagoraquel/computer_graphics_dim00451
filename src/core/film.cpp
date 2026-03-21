@@ -24,10 +24,16 @@ Film::Film(const Point2i& resolution, const std::string& filename, image_type_e 
     : m_full_resolution{ resolution }, m_filename{ filename },
       m_activate_gamma_correction{ gamma_corrected }, m_image_type{ image_type } {
     
+    
     // Allocate space for all pixels (width * height)
     m_color_buffer.resize(resolution.x * resolution.y);
+    // Populate the image_io functions
+    m_image_io_dict = {
+          {image_type_e::PNG, save_png},
+          {image_type_e::PPM3, save_ppm3},
+          {image_type_e::PPM6, save_ppm6}
+        };
 }
-
 Film::~Film() = default;
 
 /// Add the Spectrum color to image. Pixel coords comes as (x,y).
@@ -42,44 +48,32 @@ void Film::add_sample(const Point2i& pixel_coord, const Spectrum& pixel_color) c
 
 /// Convert Spectrum image information to RGB, compute final pixel values, write image.
 void Film::write_image() const {
-    // 1. Prepare a buffer for the final 8-bit pixels
-    // PNG/PPM expect: [R, G, B, R, G, B, ...]
     std::vector<unsigned char> byte_buffer;
     byte_buffer.reserve(m_full_resolution.x * m_full_resolution.y * 3);
 
     for (const auto& spec : m_color_buffer) {
         Spectrum color = spec;
 
-        // 2. Apply Gamma Correction (if requested)
-        // Most monitors use a gamma of 2.2
+        // TODO : Understand what gamma correction even is
         if (m_activate_gamma_correction) {
-            color.r = std::pow(color.r, 1.0f / 2.2f);
-            color.g = std::pow(color.g, 1.0f / 2.2f);
-            color.b = std::pow(color.b, 1.0f / 2.2f);
+          // TODO
         }
 
-        // 3. Clamp and Quantize to [0, 255]
-        // We use clamp to ensure a value like 1.1 doesn't wrap around
+        // Using std::clamp to ensure values in [0,255]
         byte_buffer.push_back(static_cast<unsigned char>(std::clamp(color.r * 255.0f, 0.0f, 255.0f)));
         byte_buffer.push_back(static_cast<unsigned char>(std::clamp(color.g * 255.0f, 0.0f, 255.0f)));
         byte_buffer.push_back(static_cast<unsigned char>(std::clamp(color.b * 255.0f, 0.0f, 255.0f)));
     }
-
-    // 4. Save to file based on the requested format
-    if (m_image_type == image_type_e::PNG) {
-        unsigned error = lodepng::encode(m_filename, byte_buffer, m_full_resolution.x, m_full_resolution.y, LCT_RGB);
-        if (error) {
-            std::cerr << "PNG Encoder Error: " << lodepng_error_text(error) << std::endl;
-        }
-    } else if (m_image_type == image_type_e::PPM3 || m_image_type == image_type_e::PPM6) {
-        // Simple PPM saving logic
-        std::ofstream ofs(m_filename, std::ios::out | std::ios::binary);
-        ofs << "P6\n" << m_full_resolution.x << " " << m_full_resolution.y << "\n255\n";
-        ofs.write(reinterpret_cast<char*>(byte_buffer.data()), byte_buffer.size());
-        ofs.close();
+    // TODO : Better error handling for unidentified output tag
+    if (m_image_io_dict.count(m_image_type) == 0) {
+      std::cerr << ">>> Image type not acceptable <<<";
+      return;
     }
-    
-    std::cout << ">>> Image saved successfully to: " << m_filename << "\n";
+    auto image_io = m_image_io_dict.at(m_image_type);
+    bool image_writing_success = image_io(byte_buffer, m_full_resolution.x, m_full_resolution.y, 3, m_filename);
+    if (image_writing_success) {
+      std::cout << ">>> Image saved successfully to: " << m_filename << "\n";
+    }
 }
 
 /// Chooses the filename based on the CLI and scene file info.
