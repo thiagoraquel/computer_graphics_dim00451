@@ -10,6 +10,9 @@
 #include <glm/ext/vector_float3.hpp>
 #include <glm/ext/vector_int3.hpp>
 
+#include <iostream>
+#include <sstream>
+
 namespace gc {
 
 //== Global Forward Declarations
@@ -53,8 +56,7 @@ class WhittedIntegrator;
 
 //=== aliases
 // Forward declarations
-template <typename T>
-class Vector3;
+template <typename T> class Vector3;
 
 using real_type = float;
 using size_type = size_t;
@@ -66,16 +68,17 @@ using Offset3f = Vector3<real_type>;
 using Radiance3f = Vector3<real_type>;
 using Biradiance3f = Vector3<real_type>;
 using Power3f = Vector3<real_type>;
+// using ScreenWindow = std::array<real_type, 4>;
 
 #ifdef M_PI
-# undef M_PI
+#undef M_PI
 #endif
-#define M_PI       3.14159265358979323846f
-#define INV_PI     0.31830988618379067154f
-#define INV_TWOPI  0.15915494309189533577f
+#define M_PI 3.14159265358979323846f
+#define INV_PI 0.31830988618379067154f
+#define INV_TWOPI 0.15915494309189533577f
 #define INV_FOURPI 0.07957747154594766788f
 #ifndef INFINITY
-# define INFINITY FLT_MAX
+#define INFINITY FLT_MAX
 #endif
 
 // Add here Option structure.
@@ -89,21 +92,99 @@ struct RunningOptions {
   // 1 = 100% of the full resolution.
   // -----------------------------------------
   /// Crop window to render.
-  std::array<float, 4> crop_window{ 0, 1, 0, 1 };
-  std::string filename;        //!< input scene file name.
-  std::string outfile;         //!< output image file name.
-  bool quick_render{ false };  //!< when set, render image with 1/4 of the requested resolition.
-  bool verbose{ false };       //!< when set, the program shows lots of debug message.
-  bool crop_window_provided{ false };  //!< when set, we got crop window specification via CLI.
+  std::array<float, 4> crop_window{0, 1, 0, 1};
+  std::string filename; //!< input scene file name.
+  std::string outfile;  //!< output image file name.
+  bool quick_render{
+      false}; //!< when set, render image with 1/4 of the requested resolition.
+  bool verbose{false}; //!< when set, the program shows lots of debug message.
+  bool crop_window_provided{
+      false}; //!< when set, we got crop window specification via CLI.
 };
 
 /// Lambda expression that returns a lowercase version of the input string.
 // Add the keyword 'inline' before auto
 inline auto str_lowercase = [](std::string str) -> std::string {
-    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
-    return str;
+  std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+  return str;
 };
 
-}  // namespace gc
+struct ScreenWindow {
+  float l, b, r, t;
 
-#endif  // !COMMON_HPP
+  ScreenWindow(float l, float b, float r, float t) : l(l), b(b), r(r), t(t) {};
+
+  ScreenWindow() = default;
+
+  float &operator[](int i) {
+    assert(i >= 0 and i <= 3);
+    if (i == 0) {
+      return l;
+    }
+    if (i == 1) {
+      return b;
+    }
+    if (i == 2) {
+      return r;
+    }
+    return t;
+  }
+
+  float operator[](char c) const {
+    std::string CHECK = "lbrt";
+    assert(CHECK.find(c) != std::string::npos);
+    if (c == 'l') {
+      return l;
+    }
+    if (c == 'r') {
+      return r;
+    }
+    if (c == 'b') {
+      return b;
+    }
+    return t;
+  }
+};
+
+inline std::ostream &operator<<(std::ostream &os, const ScreenWindow &sw) {
+  os << "ScreenWindow[l: " << sw.l << ", b: " << sw.b << ", r: " << sw.r
+     << ", t: " << sw.t << "]";
+  return os;
+};
+
+inline std::string to_string(const ScreenWindow &sw) {
+  std::ostringstream oss;
+  oss << sw; // Reutiliza o operador << que definimos acima
+  return oss.str();
+}
+
+class ScreenWindowBuilder {
+private:
+  ScreenWindow *screen_window_obj;
+
+public:
+  ScreenWindowBuilder() : screen_window_obj{new ScreenWindow()} {};
+
+  ScreenWindowBuilder set_l(float l) {
+    screen_window_obj->l = l;
+    return *this;
+  }
+  ScreenWindowBuilder set_r(float l) {
+    screen_window_obj->r = l;
+    return *this;
+  }
+  ScreenWindowBuilder set_b(float l) {
+    screen_window_obj->b = l;
+    return *this;
+  }
+  ScreenWindowBuilder set_t(float l) {
+    screen_window_obj->t = l;
+    return *this;
+  }
+  ScreenWindow build() { return *screen_window_obj; }
+};
+
+// Add here Option structure.
+} // namespace gc
+
+#endif // !COMMON_HPP
