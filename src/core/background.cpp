@@ -78,7 +78,6 @@ Background* create_color_background(std::string_view type, const ParamSet& ps) {
   std::ostringstream oss;
   oss << "create_color_background(): Unknown type of colored background specified "
       << std::quoted(type) << ", using black background.";
-  WARNING(oss.str());
   return new BackgroundSingleColor(black);
 }
 
