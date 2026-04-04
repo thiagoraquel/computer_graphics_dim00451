@@ -4,7 +4,6 @@
 // ======================================================================================
 // Add this to ignore the presence anonymous struct and nested anonymous type warnings.
 // --------------------------------------------------------------------------------------
-#include <iterator>
 #pragma clang diagnostic ignored "-Wgnu-anonymous-struct"
 #pragma clang diagnostic ignored "-Wnested-anon-types"
 // ======================================================================================
@@ -15,7 +14,6 @@
 #include <glm/ext/matrix_float4x4.hpp>
 #include <glm/ext/vector_float3.hpp>
 
-#include "../msg_system/error.hpp"
 #include "common.hpp"
 
 namespace gc {
@@ -31,6 +29,10 @@ static constexpr gc::real_type inv_4pi{ 0.07957747154594766788 };
 static constexpr gc::real_type pi_over_2{ 1.57079632679489661923 };
 static constexpr gc::real_type pi_over_4{ 0.78539816339744830961 };
 static constexpr gc::real_type sqrt2{ 1.41421356237309504880 };
+
+inline real_type degrees_to_radians(const real_type degree_val) {
+  return degree_val * (pi / 180.0f);
+}
 
 // forward declaration.
 template <typename T>
@@ -681,8 +683,6 @@ public:
   Ray(const Point3f& o, const Vector3f& d, 
     real_type start = 0.f, real_type end = INFINITY) 
     : o{ o }, d{ d }, t_min{ start }, t_max{ end } {
-    // We usually don't normalize the direction here yet, 
-    // as some algorithms need the length of d.
   }
 
   /// Evaluates the ray at parameter t, returning the point P(t) = o + t*d
