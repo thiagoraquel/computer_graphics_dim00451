@@ -13,10 +13,8 @@ struct LookAt {
   Point3f look_from;
   Vector3f up;
 };
-inline std::ostream& operator<<(std::ostream& os, const LookAt& v) {
-  os << "Look At" << v.look_at <<
-   "Look From" << v.look_from <<
-   "Up" << v.up;
+inline std::ostream &operator<<(std::ostream &os, const LookAt &v) {
+  os << "Look At" << v.look_at << "Look From" << v.look_from << "Up" << v.up;
   return os;
 }
 
@@ -26,7 +24,8 @@ public:
 
   //== Camera Public Methods
   Camera(const Point3f &look_from, const Point3f &look_at, const Vector3f &vup,
-         const ScreenWindow &screen_window, const Film& film);
+         const ScreenWindow &screen_window, const Film &film,
+         const real_type focal_distance = 1);
 
   virtual ~Camera() = default;
 
@@ -36,10 +35,11 @@ public:
   /// Returns the film's resolution
   Point2i get_film_resoulution() const { return film->get_resolution(); }
 
+  /// Camera Frame
   Point3f m_origin;
   Vector3f m_u, m_v, m_w;
+  real_type m_focal_distance;
 
-  /// Camera Frame
   std::unique_ptr<Film> film;
 
   // Screen Window Bounds
@@ -49,7 +49,8 @@ public:
 class OrthographicCamera : public Camera {
 public:
   OrthographicCamera(const Point3f &look_from, const Point3f &look_at,
-                     const Vector3f &vup, const ScreenWindow &screen_window, const Film& film);
+                     const Vector3f &vup, const ScreenWindow &screen_window,
+                     const Film &film, const real_type focal_distance = 1);
 
   Ray generate_ray(int i, int j, int nx, int ny) const override;
 };
@@ -57,16 +58,20 @@ public:
 class PerspectiveCamera : public Camera {
 public:
   PerspectiveCamera(const Point3f &look_from, const Point3f &look_at,
-                    const Vector3f &vup, const ScreenWindow &screen_window, const Film& film);
+                    const Vector3f &vup, const ScreenWindow &screen_window,
+                    const Film &film, const real_type focal_distance = 1);
 
   Ray generate_ray(int i, int j, int nx, int ny) const override;
 };
 
 /// Factory creation
 Camera *create_camera(const ParamSet &ps);
-OrthographicCamera *create_orthographic_camera(const ParamSet &ps, const LookAt &lookat, const Film &film);
-PerspectiveCamera *create_perspective_camera(const ParamSet &ps, const LookAt &lookat, const Film &film);
-ScreenWindow resolve_screen_window(const ParamSet &ps); // NOTE: Might not need to be here
+OrthographicCamera *create_orthographic_camera(const ParamSet &ps,
+                                               const LookAt &lookat,
+                                               const Film &film);
+PerspectiveCamera *create_perspective_camera(const ParamSet &ps,
+                                             const LookAt &lookat,
+                                             const Film &film);
 
 } // namespace gc
 
