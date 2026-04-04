@@ -12,6 +12,15 @@ Camera::Camera(const Point3f &look_from, const Point3f &look_at,
                const Film &film, const real_type focal_distance)
     : m_origin{look_from}, m_focal_distance(focal_distance),
       film{std::make_unique<Film>(film)}, m_screen_window{screen_window} {
+  
+      // --- ADICIONE ISTO AQUI ---
+  std::cout << "\n[DEBUG CAMERA CONSTRUCTOR]" << std::endl;
+  std::cout << ">> Origin (LookFrom): " << m_origin << std::endl;
+  std::cout << ">> Window L: " << m_screen_window.l << " | R: " << m_screen_window.r << std::endl;
+  std::cout << ">> Window B: " << m_screen_window.b << " | T: " << m_screen_window.t << std::endl;
+  std::cout << ">> Film Res: " << this->film->get_resolution().x << "x" << this->film->get_resolution().y << std::endl;
+  // --------------------------
+  
   Vector3f gaze = look_at - look_from;
   m_w = normalize(gaze);            // Forward
   m_u = normalize(cross(vup, m_w)); // Right
@@ -30,8 +39,9 @@ Ray OrthographicCamera::generate_ray(int i, int j, int nx, int ny) const {
   real_type u = m_screen_window.l + (m_screen_window.r - m_screen_window.l) *
                                         (static_cast<real_type>(i) + 0.5f) /
                                         static_cast<real_type>(nx);
-  real_type v = m_screen_window.b + (m_screen_window.t - m_screen_window.b) *
-                                        (static_cast<real_type>(j) + 0.5f) /
+  // Em vez de m_screen_window.b + ..., use:
+  real_type v = m_screen_window.t - (m_screen_window.t - m_screen_window.b) * 
+                                        (static_cast<real_type>(j) + 0.5f) / 
                                         static_cast<real_type>(ny);
 
   Vector3f dir = m_w;

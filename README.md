@@ -43,6 +43,6 @@ ctest --test-dir build --output-on-failure
 
 
 # Caution: This deletes the build folder!
-rm -rf build
+rm -rf build (for linux) or rd /s /q build (for windows)
 cmake -S . -B build -G "MinGW Makefiles"
 cmake --build build
