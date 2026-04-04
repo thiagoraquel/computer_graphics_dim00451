@@ -169,16 +169,16 @@ public:
     screen_window_obj->l = l;
     return *this;
   }
-  ScreenWindowBuilder set_r(float l) {
-    screen_window_obj->r = l;
+  ScreenWindowBuilder set_r(float r) {
+    screen_window_obj->r = r;
     return *this;
   }
-  ScreenWindowBuilder set_b(float l) {
-    screen_window_obj->b = l;
+  ScreenWindowBuilder set_b(float b) {
+    screen_window_obj->b = b;
     return *this;
   }
-  ScreenWindowBuilder set_t(float l) {
-    screen_window_obj->t = l;
+  ScreenWindowBuilder set_t(float t) {
+    screen_window_obj->t = t;
     return *this;
   }
   ScreenWindow build() { return *screen_window_obj; }
