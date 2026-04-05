@@ -1,3 +1,7 @@
 glm-1.0.3.zip
 /glm-1.0.3/
 /build/
+*.png
+*.ppm
+.vscode
+cache
