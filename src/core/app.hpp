@@ -4,10 +4,10 @@
 #include <cstdint>
 #include <memory>
 #include "background.hpp"
-#include <unordered_map>
 
 #include "common.hpp"
 #include "paramset.hpp"
+#include "camera.hpp"
 
 // Type of map we want to use.
 #define Dictionary std::unordered_map
@@ -20,9 +20,8 @@ struct RenderOptions {
   Dictionary<std::string, gc::ParamSet> actors;
   /// Background object
   std::unique_ptr<Background> background;
-  // NOTE: The film object will be owned by Camera in the future
-  /// Film object
-  std::unique_ptr<Film> film;
+  /// The Camera object (owns the film)
+  std::unique_ptr<Camera> camera;
 };
 
 /*!
@@ -90,6 +89,8 @@ public:
   static void world_end(const ParamSet& ps);
   static void film(const ParamSet& ps);
   static Film* make_film(const ParamSet&);
+  static Camera* make_camera(const ParamSet&, Film *, LookAt *);
+  static LookAt* make_look_at(const ParamSet&);
 
   /// Stores the running options passed to the main().
   static RunningOptions m_current_run_options;

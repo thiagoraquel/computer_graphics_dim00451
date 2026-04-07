@@ -133,6 +133,7 @@ bool convert(const std::string& attr_name, const std::string& attr_content, gc::
   } else {
     ps->assign(attr_name, multiple_composite_values);
   }
+  std::cout << "   ----> Value extracted is " << single_composite_value << '\n';
   return true;
 }
 
@@ -157,8 +158,6 @@ std::unordered_map<std::string, std::vector<std::string>> tag_catalog{
       "type",
       "filename",
       "img_type",
-      "x_res",
-      "y_res",
       "w_res",
       "h_res",
       "crop_window",
@@ -173,6 +172,23 @@ std::unordered_map<std::string, std::vector<std::string>> tag_catalog{
     "world_end",
     { "" },  // no attributes
   },
+  {
+    "camera",
+    { 
+      "screen_window",
+      "fovy",
+      "frame_aspectratio",
+      "type"
+    }, 
+  },
+  {
+    "lookat",
+    { 
+      "look_from",
+      "look_at",
+      "up"
+    }, 
+  },
 };
 
 /// Maps the tag name to its corresponding API function.
@@ -181,6 +197,8 @@ std::unordered_map<std::string, std::function<void(const gc::ParamSet&)>> api_fu
   { "world_begin", gc::App::world_begin },
   { "world_end", gc::App::world_end },
   { "film", gc::App::film },
+  { "lookat", gc::App::look_at },
+  { "camera", gc::App::camera }
 };
 
 /// Maps convertion function to an attribute name.
@@ -197,13 +215,20 @@ std::unordered_map<std::string, ConverterFunction> converters{
   { "tr", convert<gc::Color24, 3> },
   { "br", convert<gc::Color24, 3> },
   // Image attributes
-  { "x_res", convert<int> },
-  { "y_res", convert<int> },
   { "w_res", convert<int> },
   { "h_res", convert<int> },
   { "filename", convert<std::string> },
   { "img_type", convert<std::string> },
   { "gamma_corrected", convert<bool> },
+  // Look-at attributes
+  { "look_from", convert<gc::Point3f, 3> },
+  { "look_at", convert<gc::Point3f, 3>  },
+  { "up", convert<gc::Vector3f, 3> },
+  // Camera attributes
+  { "type", convert<std::string> },
+  { "screen_window", convert<gc::ScreenWindow, 4> },
+  { "fovy", convert<float> },
+  { "frame_aspectratio", convert<float> }
 };
 
 /*!

@@ -21,9 +21,14 @@ This method corresponds to the "main loop" of the rendering process.
 
 ```
 cmake -S . -B build
-cmake --build build
+cmake --build build -j
 ./build/rt3 scenes/scene01.xml (for linux)
 .\build\rt3 scenes\scene01.xml
+```
+
+After compiling, run the testing pipeline:
+```
+ctest --test-dir build --output-on-failure
 ```
 
 # TODO
@@ -35,3 +40,9 @@ cmake --build build
 ---
 
 &copy; DIMAp/UFRN 2024-2026.
+
+
+# Caution: This deletes the build folder!
+rm -rf build (for linux) or rd /s /q build (for windows)
+cmake -S . -B build -G "MinGW Makefiles"
+cmake --build build

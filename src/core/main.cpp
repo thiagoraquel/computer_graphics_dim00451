@@ -10,6 +10,49 @@
 #include "../msg_system/tcolor.hpp"
 #include "app.hpp"
 #include "common.hpp"
+#include "geometry.hpp"
+#include "camera.hpp"
+
+using namespace gc; // Allows us to use 'Ray', 'Point3f', etc., without the gc:: prefix
+
+//void run_camera_and_ray_tests() {
+//    std::cout << TColor::colorize("\n=== STARTING UNIT TESTS ===\n", TColor::YELLOW);
+//
+//    // [1/2] Ray Math Test
+//    Point3f r_origin{ 0.0f, 0.0f, 0.0f };
+//    Vector3f r_direction{ 1.0f, 2.0f, 3.0f };
+//    Ray r(r_origin, r_direction);
+//    
+//    // Testing P(t) = o + d * t
+//    if (r(2.5f).x == 2.5f) { 
+//        std::cout << TColor::colorize("  >> [OK] Ray math is correct!\n", TColor::GREEN);
+//    }
+//
+//    // [2/2] Testing Camera Projections
+//    std::cout << "\n[2/2] Testing Camera Projections:\n";
+//
+//    Point3f eye{0, 0, 0};
+//    Point3f look_at{0, 0, 1}; 
+//    Vector3f up{0, 1, 0};
+//    std::vector<real_type> window = {-1.0, 1.0, -1.0, 1.0}; 
+//    int nx = 200, ny = 200;
+//
+//    PerspectiveCamera persp(eye, look_at, up, window);
+//
+//    // Test the CENTER pixel
+//    Ray r_persp = persp.generate_ray(100, 100, nx, ny);
+//
+//    std::cout << "  Persp Center Ray: " << r_persp << "\n";
+//
+//    // UPDATED: Using .d instead of .direction()
+//    if (std::abs(r_persp.d.x) < 0.01f && r_persp.d.z > 0.9f) {
+//        std::cout << TColor::colorize("  >> SUCCESS: Perspective center ray points Forward!\n", TColor::GREEN);
+//    } else {
+//        std::cout << TColor::colorize("  >> ERROR: Perspective direction is off. Check your m_w calculation.\n", TColor::RED);
+//    }
+//
+//    std::cout << TColor::colorize("\n=== TESTS COMPLETED ===\n", TColor::YELLOW);
+//}
 
 void usage(std::string_view msg = "") {
   if (not msg.empty()) {
@@ -113,32 +156,35 @@ std::string to_string(const gc::RunningOptions& ro) {
   return oss.str();
 }
 
+#include <iostream>
+
+
+using namespace gc;
+
 int main(int argc, char* argv[]) {
-  gc::RunningOptions run_options;  // Stores incoming arguments.
+    gc::RunningOptions run_options;
+    bool should_run_tests = false;
 
-  // ================================================
-  // (1) Validate command line arguments.
-  // ================================================
-  validate_arguments(argc, argv, run_options);
-  if (run_options.verbose) {  // Show options set by user if in "verbose" mode.
-    constexpr short line_length{ 80 };
-    std::cout << std::setw(line_length) << std::setfill('-') << "\n";
-    std::cout << ">>> Running options are:\n" << to_string(run_options) << '\n';
-    std::cout << std::setw(line_length) << std::setfill('-') << "\n\n";
-  }
-  // ================================================
-  // (2) Welcome message
-  // ================================================
-  MESSAGE("Ray Tracer Teaching Tool -- rt3, v1.0\ncopyright DIMAp/UFRN 2025-2026.\n");
+    // We check if the user just wants to run the tests
+    for (int i = 1; i < argc; ++i) {
+        if (std::string(argv[i]) == "--test") should_run_tests = true;
+    }
 
-  // ================================================
-  // (3) Initialize the renderer engine and load a scene.
-  // ================================================
-  gc::App::init_engine(run_options);
-  gc::App::run();
-  // gc::App::clean_up();
 
-  MESSAGE("\n  --> Thanks for using rt3! <--\n");
+    // Normal Production Flow
+    validate_arguments(argc, argv, run_options);
+    
+    if (run_options.verbose) {
+        std::cout << ">>> Running options active.\n";
+    }
 
-  return EXIT_SUCCESS;
+    MESSAGE("Ray Tracer Teaching Tool -- rt3, v1.0\n");
+
+    gc::App::init_engine(run_options);
+    gc::App::run();
+
+    MESSAGE("\n  --> Thanks for using rt3! <--\n");
+    return EXIT_SUCCESS;
 }
+
+

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.31)
+cmake_minimum_required(VERSION 3.28)
 project (RT3 VERSION 1.0.0 LANGUAGES CXX )
 
 #=== CREATING COMPILING DATABASE ===#
@@ -23,3 +23,7 @@ set( LIB_LODEPNG "lodepng" )
 add_subdirectory(lib_lodepng) # This will ask this lib to be build
 set ( APP_NAME "rt3")
 add_subdirectory(src)
+
+#=== TESTING ===#
+enable_testing()
+add_subdirectory(tests)

@@ -4,7 +4,6 @@
 // ======================================================================================
 // Add this to ignore the presence anonymous struct and nested anonymous type warnings.
 // --------------------------------------------------------------------------------------
-#include <iterator>
 #pragma clang diagnostic ignored "-Wgnu-anonymous-struct"
 #pragma clang diagnostic ignored "-Wnested-anon-types"
 // ======================================================================================
@@ -15,7 +14,6 @@
 #include <glm/ext/matrix_float4x4.hpp>
 #include <glm/ext/vector_float3.hpp>
 
-#include "../msg_system/error.hpp"
 #include "common.hpp"
 
 namespace gc {
@@ -31,6 +29,10 @@ static constexpr gc::real_type inv_4pi{ 0.07957747154594766788 };
 static constexpr gc::real_type pi_over_2{ 1.57079632679489661923 };
 static constexpr gc::real_type pi_over_4{ 0.78539816339744830961 };
 static constexpr gc::real_type sqrt2{ 1.41421356237309504880 };
+
+inline real_type degrees_to_radians(const real_type degree_val) {
+  return degree_val * (pi / 180.0f);
+}
 
 // forward declaration.
 template <typename T>
@@ -627,6 +629,21 @@ T clamp(T value, U low, V high) {
   return value;
 }
 
+template <typename T, typename U>
+Vector3<T> operator*(U s, const Vector3<T>& v) {
+    return { static_cast<T>(s * v.x), static_cast<T>(s * v.y), static_cast<T>(s * v.z) };
+}
+
+template <typename T>
+Vector3<T> operator-(const Point3<T>& p1, const Point3<T>& p2) {
+    return { p1.x - p2.x, p1.y - p2.y, p1.z - p2.z };
+}
+
+template <typename T>
+Point3<T> operator-(const Point3<T>& p, const Vector3<T>& v) {
+    return { p.x - v.x, p.y - v.y, p.z - v.z };
+}
+
 inline Color24 spectrum_to_color24(const Spectrum& spectrum_color) {
   const real_type max_channel_value{ 255 };
   // If requested, do the gamma correction.
@@ -639,6 +656,48 @@ inline Color24 spectrum_to_color24(const Spectrum& spectrum_color) {
                      to_byte(spectrum_color[2]) };
   return color_rgb;
 }
+
+
+
+template <typename T>
+Point3<T> operator+(const Point3<T>& p, const Vector3<T>& v) {
+    return {p.x + v.x, p.y + v.y, p.z + v.z};
+}
+
+template <typename T>
+std::ostream& operator<<(std::ostream& os, const Point3<T>& p) {
+    os << "[ " << p.x << ", " << p.y << ", " << p.z << " ]";
+    return os;
+}
+
+class Ray {
+public:
+  //== Ray Public Data
+  Point3f o;       //!< Ray origin
+  Vector3f d;      //!< Ray direction
+  mutable real_type t_min, t_max; //!< Ray parameters (min and max distance)
+
+  //== Ray Public Methods
+  Ray() : t_min{ 0.f }, t_max{ INFINITY } {}
+
+  Ray(const Point3f& o, const Vector3f& d, 
+    real_type start = 0.f, real_type end = INFINITY) 
+    : o{ o }, d{ d }, t_min{ start }, t_max{ end } {
+  }
+
+  /// Evaluates the ray at parameter t, returning the point P(t) = o + t*d
+  Point3f operator()(real_type t) const { 
+    return o + d * t; 
+  }
+
+  /// Helper to print ray info for debugging
+  friend std::ostream& operator<<(std::ostream& os, const Ray& r) {
+    os << "Ray(org=" << r.o << ", dir=" << r.d 
+      << ", t_min=" << r.t_min << ", t_max=" << r.t_max << ")";
+    return os;
+  }
+};
+
 
 static const Color24 black{ 0, 0, 0 };
 static const Color24 white{ 255, 255, 255 };

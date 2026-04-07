@@ -1,20 +1,19 @@
 #include <chrono>
-#include <functional>
-#include <map>
 #include <memory>
 #include <sstream>
-#include <stack>
 #include <string_view>
 
-#include <glm/trigonometric.hpp>
 #include <glm/ext/vector_float3.hpp>
+#include <glm/trigonometric.hpp>
 
 #include "../msg_system/error.hpp"
 
 #include "app.hpp"
 #include "background.hpp"
+#include "camera.hpp"
 #include "common.hpp"
 #include "film.hpp"
+#include "geometry.hpp"
 #include "paramset.hpp"
 #include "parser.hpp"
 
@@ -63,7 +62,7 @@ bool App::check_in_world_block_state(std::string_view func_name) {
 }
 
 //=== App's public methods implementation
-void App::init_engine(const RunningOptions& run_options) {
+void App::init_engine(const RunningOptions &run_options) {
   // Save running option sent from the main().
   m_current_run_options = run_options;
   // Check current machine state.
@@ -86,22 +85,25 @@ void App::run() {
   parse_scene_file(m_current_run_options.filename.c_str());
 }
 
-void App::world_begin(const ParamSet& ps) {
+void App::world_begin(const ParamSet &ps) {
   check_in_setup_block_state("App::world_begin()");
-  m_current_block_state = AppState::WorldBlock;  // correct machine state.
+  m_current_block_state = AppState::WorldBlock; // correct machine state.
   hard_engine_reset();
 }
 
-/// Erase temporary engine states so that we may render another scene with the same configuration.
+/// Erase temporary engine states so that we may render another scene with the
+/// same configuration.
 void App::hard_engine_reset() {
   // Render options reset
   // TODO: in the future.
 }
 
-void App::world_end(const ParamSet& ps) {
-  MESSAGE("====================================================================");
+void App::world_end(const ParamSet &ps) {
+  MESSAGE(
+      "====================================================================");
   MESSAGE("   Parsing Phase has ended. Rendering process starts now...");
-  MESSAGE("====================================================================");
+  MESSAGE(
+      "====================================================================");
 
   check_in_world_block_state("App::world_end()");
 
@@ -112,20 +114,33 @@ void App::world_end(const ParamSet& ps) {
   // For now, we create the film here but in the future it will be
   // instantiated somewhere else.
   // 1. Create the film
-  Film* film = make_film(m_render_options->actors["film"]);
+  Film *film = make_film(m_render_options->actors["film"]);
+
   if (film == nullptr) {
     ERROR("App::setup_camera(): Unable to create film.");
     return; // Exit if film creation failed
   }
+  MESSAGE("Film created");
 
-  // 2. VITAL STEP: Give the film to the engine's RenderOptions!
-  m_render_options->film.reset(film);
+  LookAt *lookat = make_look_at(m_render_options->actors["look_at"]);
 
-  // The scene has already been parsed and properly set up. It's time to render the scene.
-  // [1] Create the integrator.
-  // [2] Create the scene.
-  // [3] Run integrator if previous instantiations went ok
-  bool scene_and_integrator_ok{ true };  // THIS is a STUB.
+  // 2. Create the camera
+  MESSAGE("WIll create camera");
+  Camera *camera = make_camera(m_render_options->actors["camera"], film, lookat);
+  MESSAGE("Camera Created");
+
+  if (camera == nullptr) {
+    ERROR("App::setup_camera(): Unable to create camera.");
+    return;
+  }
+  m_render_options->camera.reset(camera);
+  MESSAGE("Camera created");
+
+  // The scene has already been parsed and properly set up. It's time to render
+  // the scene. [1] Create the integrator. [2] Create the scene. [3] Run
+  // integrator if previous instantiations went ok
+  bool scene_and_integrator_ok{true}; // THIS is a STUB.
+  MESSAGE("Integrator shit done");
   if (scene_and_integrator_ok) {
     MESSAGE("    Parsing scene successfuly done!\n");
     MESSAGE("[2] Starting ray tracing progress.\n");
@@ -136,18 +151,21 @@ void App::world_end(const ParamSet& ps) {
     render();
     auto end = std::chrono::steady_clock::now();
     //================================================================================
-    auto diff = end - start;  // Store the time difference between start and end
+    auto diff = end - start; // Store the time difference between start and end
     // Seconds
     auto diff_sec = std::chrono::duration_cast<std::chrono::seconds>(diff);
-    MESSAGE("    Time elapsed: " + std::to_string(diff_sec.count()) + " seconds ("
-            + std::to_string(std::chrono::duration<double, std::milli>(diff).count()) + " ms) \n");
+    MESSAGE("    Time elapsed: " + std::to_string(diff_sec.count()) +
+            " seconds (" +
+            std::to_string(
+                std::chrono::duration<double, std::milli>(diff).count()) +
+            " ms) \n");
   }
   // [4] Basic clean up, preparing for new rendering, in case we have
   // several scene setup + world in a single input scene file.
-  m_current_block_state = AppState::SetupBlock;  // correct machine state.
+  m_current_block_state = AppState::SetupBlock; // correct machine state.
 }
 
-void App::film(const ParamSet& ps) {
+void App::film(const ParamSet &ps) {
   if (not check_in_setup_block_state("App::film()")) {
     return;
   }
@@ -156,22 +174,47 @@ void App::film(const ParamSet& ps) {
   if (m_current_run_options.verbose) {
     auto type = ps.retrieve<std::string>("type", "unknown");
     std::cout << ">>> film type: " << std::quoted(type) << '\n';
+    // TODO: Add the rest of the logs
   }
 }
 
-void App::background(const ParamSet& ps) {
+void App::camera(const ParamSet &ps) {
+  if (not check_in_setup_block_state("App::camera()")) {
+    return;
+  }
+  // Store the ps associated with camera for later retrieval.
+  m_render_options->actors["camera"] = ps;
+  if (m_current_run_options.verbose) {
+    auto type = ps.retrieve<std::string>("type", "unknown");
+    std::cout << ">>> camera type: " << std::quoted(type) << '\n';
+  }
+}
+
+void App::look_at(const ParamSet &ps) {
+  if (not check_in_setup_block_state("App::look_at()")) {
+    return;
+  }
+  // Store the ps associated with camera for later retrieval.
+  m_render_options->actors["look_at"] = ps;
+  if (m_current_run_options.verbose) {
+    // TODO : Add Logs
+  }
+}
+
+void App::background(const ParamSet &ps) {
   check_in_world_block_state("App::background");
 
   auto type = ps.retrieve<std::string>("type", "unknown");
   if (type == "unknown") {
-    ERROR("API::background(): Missing \"type\" specificaton for the background.");
+    ERROR(
+        "API::background(): Missing \"type\" specificaton for the background.");
   }
-  Background* bkg{ nullptr };
+  Background *bkg{nullptr};
   if (type == "single_color" or type == "4_colors") {
     bkg = create_color_background(type, ps);
   } else {
-    WARNING(std::string{ "API::background(): unknown background type \"" } + type
-            + std::string{ "\" provided; assuming colored background." });
+    WARNING(std::string{"API::background(): unknown background type \""} +
+            type + std::string{"\" provided; assuming colored background."});
     bkg = create_color_background(type, ps);
   }
   // Store current background objec.
@@ -179,32 +222,59 @@ void App::background(const ParamSet& ps) {
 }
 
 void App::render() {
-  auto film_resolution = m_render_options->film->get_resolution();
+  Camera * camera = m_render_options->camera.get();
+  Film * film = camera->film.get();
+  auto film_resolution = film->get_resolution();
   auto w = film_resolution.x;
   auto h = film_resolution.y;
-
   for (int j = 0; j < h; j++) {
     for (int i = 0; i < w; i++) {
-      // Use w-1 and h-1 to get the full [0.0, 1.0] range
+      auto ray{camera->generate_ray(i, j, w, h)};
+      std::cout << "Ray Gerado: " << ray << std::endl;
       float u = float(i) / float(w - 1);
       float v = float(j) / float(h - 1);
-
       auto color = m_render_options->background->sampleUV(u, v);
-      m_render_options->film->add_sample(Point2i{ i, j }, color);
+      camera->film->add_sample(Point2i{i, j}, color);
     }
   }
-  m_render_options->film->write_image();
+  camera->film->write_image();
 }
 
-Film* App::make_film(const ParamSet& ps) {
-  Film* film{ nullptr };
+Film *App::make_film(const ParamSet &ps) {
+  Film *film{nullptr};
   auto film_type = ps.retrieve<std::string>("type");
   if (film_type == "image") {
     film = create_film(ps);
   } else {
-    WARNING(std::string{ "Film \"" } + film_type + std::string{ "\" unknown." });
+    WARNING(std::string{"Film \""} + film_type + std::string{"\" unknown."});
   }
+  std::cout << "DEBUG - Resolution do filme na criacao : " << film->get_resolution().x << ", " << film->get_resolution().y << std::endl;
   return film;
 }
 
-}  // namespace gc
+Camera *App::make_camera(const ParamSet &ps, Film *film, LookAt *lookat) {
+  Camera *camera{nullptr};
+  std::string camera_type = ps.retrieve<std::string>("type", "orthographic");
+  if (camera_type == "orthographic") {
+    camera = create_orthographic_camera(ps, *lookat, *film);
+  } else if (camera_type == "perpective") {
+    camera = create_perspective_camera(ps, *lookat, *film);
+  } else {
+    WARNING(std::string{" \""} + camera_type + std::string{"\" unknown."});
+  }
+  return camera;
+}
+
+LookAt *App::make_look_at(const ParamSet &ps) {
+LookAt *la = new LookAt();
+    
+    Point3f from = ps.retrieve<Point3f>("look_from");
+    Point3f target = ps.retrieve<Point3f>("look_at");
+    Vector3f up = ps.retrieve<Vector3f>("up");
+    la->look_from = from;
+    la->look_at = target;
+    la->up = up;
+    return la;
+}
+
+} // naAespace gc

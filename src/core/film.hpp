@@ -7,7 +7,6 @@
 #include "common.hpp"
 #include "geometry.hpp"
 #include "paramset.hpp"
-#include "image_io.hpp"
 
 namespace gc {
 
