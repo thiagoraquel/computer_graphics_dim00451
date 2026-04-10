@@ -6,6 +6,7 @@ add_library( rt3_core
    core/camera.cpp
    core/image_io.cpp
    core/parser.cpp
+   core/sphere.cpp
    msg_system/error.cpp
    extras/pbar.cpp
 )

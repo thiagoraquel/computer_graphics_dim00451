@@ -189,6 +189,23 @@ std::unordered_map<std::string, std::vector<std::string>> tag_catalog{
       "up"
     }, 
   },
+  {
+    "material",
+    { 
+      "type",
+      "color"
+    }, 
+  },
+  {
+    "object",
+    { 
+      "type",
+      // Sphere object properties
+      "sphere",
+      "center",
+      "radius"
+    }, 
+  },
 };
 
 /// Maps the tag name to its corresponding API function.
@@ -198,7 +215,9 @@ std::unordered_map<std::string, std::function<void(const gc::ParamSet&)>> api_fu
   { "world_end", gc::App::world_end },
   { "film", gc::App::film },
   { "lookat", gc::App::look_at },
-  { "camera", gc::App::camera }
+  { "camera", gc::App::camera },
+  { "material", gc::App::material },
+  { "object", gc::App::object }
 };
 
 /// Maps convertion function to an attribute name.
@@ -228,7 +247,14 @@ std::unordered_map<std::string, ConverterFunction> converters{
   { "type", convert<std::string> },
   { "screen_window", convert<gc::ScreenWindow, 4> },
   { "fovy", convert<float> },
-  { "frame_aspectratio", convert<float> }
+  { "frame_aspectratio", convert<float> },
+  // Material attributes
+  { "type", convert<std::string> },
+  { "color", convert<gc::ColorXYZ, 3> },
+  // Object attributes
+  { "type", convert<std::string> },
+  { "radius", convert<gc::real_type> },
+  { "center", convert<gc::Point3f, 3> },
 };
 
 /*!
