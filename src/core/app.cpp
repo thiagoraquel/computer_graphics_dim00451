@@ -205,6 +205,7 @@ void App::object(const ParamSet &ps) {
   }
 }
 
+// Atenção!! Está guardando o material na mesma lista dos objects!!
 void App::material(const ParamSet &ps) {
   m_render_options->primitives.push_back(ps);
   if (m_current_run_options.verbose) {
@@ -259,14 +260,10 @@ void App::render() {
       auto color = m_render_options->background->sampleUV(u, v);
       
       for (const auto &obj : m_render_options->objects) {
-        bool intersects = obj->intersect_p(ray);
-        if (intersects) {
-          if (obj->intersect_p(ray)) {
-            // TODO : Definir a cor a partir do Material
-            color = ColorXYZ(255,0,0);
-          }
+        if (obj->intersect_p(ray)) {
+            color = ColorXYZ(255,0,0); // Fica vermelho se bater
         }
-      }
+}
 
       camera->film->add_sample(Point2i{i, j}, color);
     }

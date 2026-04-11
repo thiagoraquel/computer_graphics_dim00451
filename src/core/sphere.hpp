@@ -21,7 +21,7 @@ public:
   // It does not compute the hit point information.
   bool intersect_p(const Ray &r) const override;
 
-  const gc::Material *get_material(void) const override;
+  const Material *get_material() const override;
 };
 
 } // namespace gc
