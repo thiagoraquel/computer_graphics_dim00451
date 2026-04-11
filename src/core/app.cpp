@@ -206,7 +206,10 @@ void App::object(const ParamSet &ps) {
 }
 
 void App::material(const ParamSet &ps) {
-  //  TODO:
+  m_render_options->primitives.push_back(ps);
+  if (m_current_run_options.verbose) {
+    // TODO : Add logs
+  }
 }
 
 void App::look_at(const ParamSet &ps) {
@@ -250,10 +253,21 @@ void App::render() {
   for (int j = 0; j < h; j++) {
     for (int i = 0; i < w; i++) {
       auto ray{camera->generate_ray(i, j, w, h)};
-      std::cout << "Ray Gerado: " << ray << std::endl;
+      //std::cout << "Ray Gerado: " << ray << std::endl;
       float u = float(i) / float(w - 1);
       float v = float(j) / float(h - 1);
       auto color = m_render_options->background->sampleUV(u, v);
+      
+      for (const auto &obj : m_render_options->objects) {
+        bool intersects = obj->intersect_p(ray);
+        if (intersects) {
+          if (obj->intersect_p(ray)) {
+            // TODO : Definir a cor a partir do Material
+            color = ColorXYZ(255,0,0);
+          }
+        }
+      }
+
       camera->film->add_sample(Point2i{i, j}, color);
     }
   }
@@ -287,6 +301,12 @@ Camera *App::make_camera(const ParamSet &ps, Film *film, LookAt *lookat) {
   return camera;
 }
 
+//std::shared_ptr<Material> App::make_material(const ParamSet &ps) {
+//  if (ps.retrieve<std::string>("type") == "flat") {
+//    auto color = ps.retrieve<ColorXYZ>("color");
+//    return std::make_shared<Material>();
+//  }
+//}
 std::vector<std::unique_ptr<Primitive>> App::make_objects(const std::vector<ParamSet>& param_sets) {
     std::vector<std::unique_ptr<Primitive>> objects;
     objects.reserve(param_sets.size());

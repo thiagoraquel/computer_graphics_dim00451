@@ -261,6 +261,8 @@ public:
     z = v.z;
     return *this;
   }
+  
+
 
   // ADD THESE OPERATORS INSIDE THE CLASS:
     Vector3<T> operator+(const Vector3<T>& v) const { return {x + v.x, y + v.y, z + v.z}; }

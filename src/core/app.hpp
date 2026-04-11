@@ -27,6 +27,8 @@ struct RenderOptions {
   /// The Camera object (owns the film)
   std::unique_ptr<Camera> camera;
   std::vector<std::unique_ptr<Primitive>> objects;
+  // TODO : Preparar para os multiplos materiais
+  std::shared_ptr<Material> material;
 };
 
 /*!
@@ -97,6 +99,7 @@ public:
   static Film* make_film(const ParamSet&);
   static Camera* make_camera(const ParamSet&, Film *, LookAt *);
   static LookAt* make_look_at(const ParamSet&);
+  static std::shared_ptr<Material> make_material(const ParamSet&);
   static std::vector<std::unique_ptr<Primitive>> make_objects(const std::vector<ParamSet>& param_sets);
 
   /// Stores the running options passed to the main().

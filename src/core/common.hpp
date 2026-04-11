@@ -116,13 +116,16 @@ struct ScreenWindow {
 
   ScreenWindow() = default;
 
-float &operator[](int i) {
+  float &operator[](int i) {
     assert(i >= 0 and i <= 3);
-    if (i == 0) return l; // Left
-    if (i == 1) return r; // <--- Mude de 'b' para 'r' (Right)
-    if (i == 2) return b; // <--- Mude de 'r' para 'b' (Bottom)
-    return t;             // Top
-}
+    if (i == 0)
+      return l; // Left
+    if (i == 1)
+      return r; // <--- Mude de 'b' para 'r' (Right)
+    if (i == 2)
+      return b; // <--- Mude de 'r' para 'b' (Bottom)
+    return t;   // Top
+  }
 
   float operator[](char c) const {
     std::string CHECK = "lbrt";
