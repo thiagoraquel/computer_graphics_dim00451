@@ -162,12 +162,13 @@ Ray PerspectiveCamera::generate_ray(int i, int j, int nx, int ny) const {
   real_type u = m_screen_window.l + (m_screen_window.r - m_screen_window.l) *
                                         (static_cast<real_type>(i) + 0.5f) /
                                         static_cast<real_type>(nx);
-  real_type v = m_screen_window.b + (m_screen_window.t - m_screen_window.b) *
+                                        
+  // Troque o cálculo de 'v' por este aqui:
+  real_type v = m_screen_window.t - (m_screen_window.t - m_screen_window.b) *
                                         (static_cast<real_type>(j) + 0.5f) /
                                         static_cast<real_type>(ny);
 
   Point3f origin = m_origin;
-
   Vector3f dir = (m_focal_distance * m_w) + (u * m_u) + (v * m_v);
 
   return Ray(origin, dir);
