@@ -203,7 +203,10 @@ std::unordered_map<std::string, std::vector<std::string>> tag_catalog{
       // Sphere object properties
       "sphere",
       "center",
-      "radius"
+      "radius",
+      "v0", // <-- Adicione isto
+      "v1", // <-- Adicione isto
+      "v2"  // <-- Adicione isto
     }, 
   },
 };
@@ -225,7 +228,7 @@ std::unordered_map<std::string, ConverterFunction> converters{
   { "type", convert<std::string> },  // "type" must be a string.
   { "name", convert<std::string> },  // "name" must be a string.
   //
-  { "color", convert<gc::Color24, 3> },  // "color" is a Color24 with 3 fields.
+  //{ "color", convert<gc::Color24, 3> },  // "color" is a Color24 with 3 fields.
   { "flip", convert<bool> },
   // Background attributes.
   { "mapping", convert<std::string> },
@@ -255,6 +258,9 @@ std::unordered_map<std::string, ConverterFunction> converters{
   { "type", convert<std::string> },
   { "radius", convert<gc::real_type> },
   { "center", convert<gc::Point3f, 3> },
+  { "v0", convert<gc::Point3f, 3> }, 
+  { "v1", convert<gc::Point3f, 3> }, 
+  { "v2", convert<gc::Point3f, 3> }, 
 };
 
 /*!

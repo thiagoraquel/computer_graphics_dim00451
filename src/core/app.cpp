@@ -18,6 +18,8 @@
 #include "paramset.hpp"
 #include "parser.hpp"
 #include "sphere.hpp"
+#include "triangle.hpp"
+#include "flatmaterial.hpp"
 
 namespace gc {
 
@@ -298,22 +300,37 @@ Camera *App::make_camera(const ParamSet &ps, Film *film, LookAt *lookat) {
   return camera;
 }
 
-//std::shared_ptr<Material> App::make_material(const ParamSet &ps) {
-//  if (ps.retrieve<std::string>("type") == "flat") {
-//    auto color = ps.retrieve<ColorXYZ>("color");
-//    return std::make_shared<Material>();
-//  }
-//}
+std::shared_ptr<Material> App::make_material(const ParamSet &ps) {
+    if (ps.retrieve<std::string>("type") == "flat") {
+        auto color = ps.retrieve<ColorXYZ>("color");
+
+        // O nosso truque de normalização automática:
+        if (color[0] > 1.0f || color[1] > 1.0f || color[2] > 1.0f) {
+            color = color / 255.0f; // Transforma o RGB 0-255 em 0.0-1.0
+        }
+
+        // Cria e retorna o material concreto com a cor lida
+        return std::make_shared<FlatMaterial>(color);
+    }
+    
+    return nullptr; // Retorna nulo se o tipo for desconhecido
+}
+
 std::vector<std::unique_ptr<Primitive>> App::make_objects(const std::vector<ParamSet>& param_sets) {
     std::vector<std::unique_ptr<Primitive>> objects;
     objects.reserve(param_sets.size());
 
     for (const auto& ps : param_sets) {
-        if (ps.retrieve<std::string>("type") == "sphere") {
-            auto center = ps.retrieve<Point3f>("center");
-            auto radius = ps.retrieve<real_type>("radius");
-            objects.push_back(std::make_unique<Sphere>(center,radius));
-        }
+      if (ps.retrieve<std::string>("type") == "sphere") {
+        auto center = ps.retrieve<Point3f>("center");
+        auto radius = ps.retrieve<real_type>("radius");
+        objects.push_back(std::make_unique<Sphere>(center,radius));
+      } else if (ps.retrieve<std::string>("type") == "triangle") {
+        auto v0 = ps.retrieve<Point3f>("v0");
+        auto v1 = ps.retrieve<Point3f>("v1");
+        auto v2 = ps.retrieve<Point3f>("v2");
+        objects.push_back(std::make_unique<Triangle>(v0, v1, v2));
+      }
     }
     return objects;
 }

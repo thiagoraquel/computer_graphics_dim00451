@@ -1,3 +1,6 @@
+#ifndef FLATMATERIAL_HPP
+#define FLATMATERIAL_HPP
+
 #include "common.hpp"
 #include "material.hpp"
 #include "geometry.hpp"
@@ -7,9 +10,10 @@ namespace gc {
 class FlatMaterial : public Material {
   public:
     FlatMaterial(const ColorXYZ &);
-    virtual ColorXYZ get_color() const override ;
+    virtual ColorXYZ get_color() const override;
   private:
-  ColorXYZ color;
+    ColorXYZ color;
 };
-
 } // namespace gc
+
+#endif // FLATMATERIAL_HPP
