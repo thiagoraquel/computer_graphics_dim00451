@@ -259,6 +259,9 @@ void App::render() {
       //std::cout << "Ray Gerado: " << ray << std::endl;
       float u = float(i) / float(w - 1);
       float v = float(j) / float(h - 1);
+
+      // Inverte o V para converter de "Espaço de Imagem" para "Espaço Matemático"
+      v = 1.0f - v;
       auto color = m_render_options->background->sampleUV(u, v);
       
       for (const auto &obj : m_render_options->objects) {

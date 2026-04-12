@@ -11,5 +11,6 @@
         <object type="sphere" radius="0.4" center="1 -0.5 8" />
         <object type="sphere" radius="0.4" center="-1 -1.5 3.5" />
         <object type="triangle" v0="0 1 5" v1="-1 -1 5" v2="1 -1 5" />
+        <object type="triangle" v0="2.5 2 9" v1="1.5 -1 9" v2="3.5 -1 9" />
     <world_end/>
 </RT3>
