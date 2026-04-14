@@ -163,7 +163,6 @@ Ray PerspectiveCamera::generate_ray(int i, int j, int nx, int ny) const {
                                         (static_cast<real_type>(i) + 0.5f) /
                                         static_cast<real_type>(nx);
                                         
-  // Troque o cálculo de 'v' por este aqui:
   real_type v = m_screen_window.t - (m_screen_window.t - m_screen_window.b) *
                                         (static_cast<real_type>(j) + 0.5f) /
                                         static_cast<real_type>(ny);

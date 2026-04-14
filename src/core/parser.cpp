@@ -204,9 +204,9 @@ std::unordered_map<std::string, std::vector<std::string>> tag_catalog{
       "sphere",
       "center",
       "radius",
-      "v0", // <-- Adicione isto
-      "v1", // <-- Adicione isto
-      "v2"  // <-- Adicione isto
+      "v0",
+      "v1",
+      "v2"
     }, 
   },
 };

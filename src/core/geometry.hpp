@@ -264,12 +264,10 @@ public:
   
 
 
-  // ADD THESE OPERATORS INSIDE THE CLASS:
     Vector3<T> operator+(const Vector3<T>& v) const { return {x + v.x, y + v.y, z + v.z}; }
     Vector3<T> operator-(const Vector3<T>& v) const { return {x - v.x, y - v.y, z - v.z}; }
     Vector3<T> operator*(T s) const { return {x * s, y * s, z * s}; }
     Vector3<T> operator/(T s) const { return {x / s, y / s, z / s}; }
-    // Adicione este operador DENTRO da classe Vector3:
     Vector3<T> operator-() const { return {-x, -y, -z}; }
     
     // This allows scalar * vector (e.g., 2.0f * vec)

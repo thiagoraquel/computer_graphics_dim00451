@@ -307,16 +307,15 @@ std::shared_ptr<Material> App::make_material(const ParamSet &ps) {
     if (ps.retrieve<std::string>("type") == "flat") {
         auto color = ps.retrieve<ColorXYZ>("color");
 
-        // O nosso truque de normalização automática:
+        // Normalizing the colors from [0,255] to [0,1]
         if (color[0] > 1.0f || color[1] > 1.0f || color[2] > 1.0f) {
-            color = color / 255.0f; // Transforma o RGB 0-255 em 0.0-1.0
+            color = color / 255.0f; 
         }
 
-        // Cria e retorna o material concreto com a cor lida
         return std::make_shared<FlatMaterial>(color);
     }
     
-    return nullptr; // Retorna nulo se o tipo for desconhecido
+    return nullptr;
 }
 
 std::vector<std::unique_ptr<Primitive>> App::make_objects(const std::vector<ParamSet>& param_sets) {
