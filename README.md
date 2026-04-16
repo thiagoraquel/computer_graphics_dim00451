@@ -46,3 +46,5 @@ ctest --test-dir build --output-on-failure
 rm -rf build (for linux) or rd /s /q build (for windows)
 cmake -S . -B build -G "MinGW Makefiles"
 cmake --build build
+
+.\build\rt3.exe scenes\proj3_ortho.xml

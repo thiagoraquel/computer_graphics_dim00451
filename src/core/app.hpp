@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <vector>
 #include "background.hpp"
 
 #include "common.hpp"
@@ -18,10 +19,16 @@ namespace gc {
 struct RenderOptions {
   /// This is a map of attribute names (keys) and paramset (values).
   Dictionary<std::string, gc::ParamSet> actors;
+  std::vector<ParamSet> primitives;
+  //  HACK : This should be a part of the 'actors' map
+
   /// Background object
   std::unique_ptr<Background> background;
   /// The Camera object (owns the film)
   std::unique_ptr<Camera> camera;
+  std::vector<std::unique_ptr<Primitive>> objects;
+  // TODO : Preparar para os multiplos materiais
+  std::shared_ptr<Material> material;
 };
 
 /*!
@@ -82,6 +89,7 @@ public:
   static bool check_in_world_block_state(std::string_view func_name);
 
   static void camera(const ParamSet& ps);
+  static void object(const ParamSet& ps);
   static void look_at(const ParamSet& ps);
   static void background(const ParamSet& ps);
   static void material(const ParamSet& ps);
@@ -91,6 +99,8 @@ public:
   static Film* make_film(const ParamSet&);
   static Camera* make_camera(const ParamSet&, Film *, LookAt *);
   static LookAt* make_look_at(const ParamSet&);
+  static std::shared_ptr<Material> make_material(const ParamSet&);
+  static std::vector<std::unique_ptr<Primitive>> make_objects(const std::vector<ParamSet>& param_sets);
 
   /// Stores the running options passed to the main().
   static RunningOptions m_current_run_options;

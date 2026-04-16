@@ -2,6 +2,7 @@
 #include <memory>
 #include <sstream>
 #include <string_view>
+#include <vector>
 
 #include <glm/ext/vector_float3.hpp>
 #include <glm/trigonometric.hpp>
@@ -16,6 +17,9 @@
 #include "geometry.hpp"
 #include "paramset.hpp"
 #include "parser.hpp"
+#include "sphere.hpp"
+#include "triangle.hpp"
+#include "flatmaterial.hpp"
 
 namespace gc {
 
@@ -126,8 +130,8 @@ void App::world_end(const ParamSet &ps) {
 
   // 2. Create the camera
   MESSAGE("WIll create camera");
-  Camera *camera = make_camera(m_render_options->actors["camera"], film, lookat);
-  MESSAGE("Camera Created");
+  Camera *camera =
+      make_camera(m_render_options->actors["camera"], film, lookat);
 
   if (camera == nullptr) {
     ERROR("App::setup_camera(): Unable to create camera.");
@@ -135,6 +139,11 @@ void App::world_end(const ParamSet &ps) {
   }
   m_render_options->camera.reset(camera);
   MESSAGE("Camera created");
+
+  std::vector<std::unique_ptr<Primitive>> objs = make_objects(m_render_options->primitives);
+
+  // TODO : Provavelmente errado
+  m_render_options->objects = std::move(objs);
 
   // The scene has already been parsed and properly set up. It's time to render
   // the scene. [1] Create the integrator. [2] Create the scene. [3] Run
@@ -190,6 +199,22 @@ void App::camera(const ParamSet &ps) {
   }
 }
 
+void App::object(const ParamSet &ps) {
+  // Store the ps associated with the objects for later retrieval.
+  m_render_options->primitives.push_back(ps);
+  if (m_current_run_options.verbose) {
+    // TODO : Add logs
+  }
+}
+
+// Atenção!! Está guardando o material na mesma lista dos objects!!
+void App::material(const ParamSet &ps) {
+  m_render_options->primitives.push_back(ps);
+  if (m_current_run_options.verbose) {
+    // TODO : Add logs
+  }
+}
+
 void App::look_at(const ParamSet &ps) {
   if (not check_in_setup_block_state("App::look_at()")) {
     return;
@@ -222,18 +247,29 @@ void App::background(const ParamSet &ps) {
 }
 
 void App::render() {
-  Camera * camera = m_render_options->camera.get();
-  Film * film = camera->film.get();
+  Camera *camera = m_render_options->camera.get();
+  Film *film = camera->film.get();
   auto film_resolution = film->get_resolution();
   auto w = film_resolution.x;
   auto h = film_resolution.y;
+
   for (int j = 0; j < h; j++) {
     for (int i = 0; i < w; i++) {
       auto ray{camera->generate_ray(i, j, w, h)};
-      std::cout << "Ray Gerado: " << ray << std::endl;
+      //std::cout << "Ray Gerado: " << ray << std::endl;
       float u = float(i) / float(w - 1);
       float v = float(j) / float(h - 1);
+
+      // Inverte o V para converter de "Espaço de Imagem" para "Espaço Matemático"
+      v = 1.0f - v;
       auto color = m_render_options->background->sampleUV(u, v);
+      
+      for (const auto &obj : m_render_options->objects) {
+        if (obj->intersect_p(ray)) {
+            color = ColorXYZ(255,0,0); // Fica vermelho se bater
+        }
+}
+
       camera->film->add_sample(Point2i{i, j}, color);
     }
   }
@@ -248,7 +284,9 @@ Film *App::make_film(const ParamSet &ps) {
   } else {
     WARNING(std::string{"Film \""} + film_type + std::string{"\" unknown."});
   }
-  std::cout << "DEBUG - Resolution do filme na criacao : " << film->get_resolution().x << ", " << film->get_resolution().y << std::endl;
+  std::cout << "DEBUG - Resolution do filme na criacao : "
+            << film->get_resolution().x << ", " << film->get_resolution().y
+            << std::endl;
   return film;
 }
 
@@ -257,7 +295,7 @@ Camera *App::make_camera(const ParamSet &ps, Film *film, LookAt *lookat) {
   std::string camera_type = ps.retrieve<std::string>("type", "orthographic");
   if (camera_type == "orthographic") {
     camera = create_orthographic_camera(ps, *lookat, *film);
-  } else if (camera_type == "perpective") {
+  } else if (camera_type == "perspective") {
     camera = create_perspective_camera(ps, *lookat, *film);
   } else {
     WARNING(std::string{" \""} + camera_type + std::string{"\" unknown."});
@@ -265,16 +303,50 @@ Camera *App::make_camera(const ParamSet &ps, Film *film, LookAt *lookat) {
   return camera;
 }
 
-LookAt *App::make_look_at(const ParamSet &ps) {
-LookAt *la = new LookAt();
+std::shared_ptr<Material> App::make_material(const ParamSet &ps) {
+    if (ps.retrieve<std::string>("type") == "flat") {
+        auto color = ps.retrieve<ColorXYZ>("color");
+
+        // Normalizing the colors from [0,255] to [0,1]
+        if (color[0] > 1.0f || color[1] > 1.0f || color[2] > 1.0f) {
+            color = color / 255.0f; 
+        }
+
+        return std::make_shared<FlatMaterial>(color);
+    }
     
-    Point3f from = ps.retrieve<Point3f>("look_from");
-    Point3f target = ps.retrieve<Point3f>("look_at");
-    Vector3f up = ps.retrieve<Vector3f>("up");
-    la->look_from = from;
-    la->look_at = target;
-    la->up = up;
-    return la;
+    return nullptr;
 }
 
-} // naAespace gc
+std::vector<std::unique_ptr<Primitive>> App::make_objects(const std::vector<ParamSet>& param_sets) {
+    std::vector<std::unique_ptr<Primitive>> objects;
+    objects.reserve(param_sets.size());
+
+    for (const auto& ps : param_sets) {
+      if (ps.retrieve<std::string>("type") == "sphere") {
+        auto center = ps.retrieve<Point3f>("center");
+        auto radius = ps.retrieve<real_type>("radius");
+        objects.push_back(std::make_unique<Sphere>(center,radius));
+      } else if (ps.retrieve<std::string>("type") == "triangle") {
+        auto v0 = ps.retrieve<Point3f>("v0");
+        auto v1 = ps.retrieve<Point3f>("v1");
+        auto v2 = ps.retrieve<Point3f>("v2");
+        objects.push_back(std::make_unique<Triangle>(v0, v1, v2));
+      }
+    }
+    return objects;
+}
+
+LookAt *App::make_look_at(const ParamSet &ps) {
+  LookAt *la = new LookAt();
+
+  Point3f from = ps.retrieve<Point3f>("look_from");
+  Point3f target = ps.retrieve<Point3f>("look_at");
+  Vector3f up = ps.retrieve<Vector3f>("up");
+  la->look_from = from;
+  la->look_at = target;
+  la->up = up;
+  return la;
+}
+
+} // namespace gc
