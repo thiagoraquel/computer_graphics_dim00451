@@ -15,45 +15,6 @@
 
 using namespace gc; // Allows us to use 'Ray', 'Point3f', etc., without the gc:: prefix
 
-//void run_camera_and_ray_tests() {
-//    std::cout << TColor::colorize("\n=== STARTING UNIT TESTS ===\n", TColor::YELLOW);
-//
-//    // [1/2] Ray Math Test
-//    Point3f r_origin{ 0.0f, 0.0f, 0.0f };
-//    Vector3f r_direction{ 1.0f, 2.0f, 3.0f };
-//    Ray r(r_origin, r_direction);
-//    
-//    // Testing P(t) = o + d * t
-//    if (r(2.5f).x == 2.5f) { 
-//        std::cout << TColor::colorize("  >> [OK] Ray math is correct!\n", TColor::GREEN);
-//    }
-//
-//    // [2/2] Testing Camera Projections
-//    std::cout << "\n[2/2] Testing Camera Projections:\n";
-//
-//    Point3f eye{0, 0, 0};
-//    Point3f look_at{0, 0, 1}; 
-//    Vector3f up{0, 1, 0};
-//    std::vector<real_type> window = {-1.0, 1.0, -1.0, 1.0}; 
-//    int nx = 200, ny = 200;
-//
-//    PerspectiveCamera persp(eye, look_at, up, window);
-//
-//    // Test the CENTER pixel
-//    Ray r_persp = persp.generate_ray(100, 100, nx, ny);
-//
-//    std::cout << "  Persp Center Ray: " << r_persp << "\n";
-//
-//    // UPDATED: Using .d instead of .direction()
-//    if (std::abs(r_persp.d.x) < 0.01f && r_persp.d.z > 0.9f) {
-//        std::cout << TColor::colorize("  >> SUCCESS: Perspective center ray points Forward!\n", TColor::GREEN);
-//    } else {
-//        std::cout << TColor::colorize("  >> ERROR: Perspective direction is off. Check your m_w calculation.\n", TColor::RED);
-//    }
-//
-//    std::cout << TColor::colorize("\n=== TESTS COMPLETED ===\n", TColor::YELLOW);
-//}
-
 void usage(std::string_view msg = "") {
   if (not msg.empty()) {
     std::cout << TColor::colorize(">>> Error: ", TColor::RED) << TColor::colorize(msg, TColor::RED)
